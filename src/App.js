@@ -9,13 +9,21 @@ function App() {
   const [formData, setFormData] = useState({ title: "", content: "" });
   const [editId, setEditId] = useState(null);
 
-  // Fungsi untuk mengambil data catatan dari backend
   const fetchNotes = async () => {
     try {
       const res = await axios.get(API_URL);
-      setNotes(res.data);
+      console.log("API result:", res.data); // cek bentuk data
+      if (Array.isArray(res.data)) {
+        setNotes(res.data);
+      } else if (Array.isArray(res.data.data)) {
+        setNotes(res.data.data); // fallback kalau masih dibungkus
+      } else {
+        console.warn("Data yang diterima bukan array:", res.data);
+        setNotes([]); // fallback aman
+      }
     } catch (error) {
       console.error("Gagal mengambil data:", error);
+      setNotes([]);
     }
   };
 
@@ -23,16 +31,13 @@ function App() {
     fetchNotes();
   }, []);
 
-  // Fungsi untuk menangani perubahan input form
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Fungsi untuk menambah atau mengupdate catatan
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (editId) {
-      // Update catatan yang sudah ada
       try {
         const res = await axios.put(`${API_URL}/${editId}`, formData);
         setNotes(notes.map((note) => (note.id === editId ? res.data : note)));
@@ -42,7 +47,6 @@ function App() {
         console.error("Gagal mengupdate catatan:", error);
       }
     } else {
-      // Tambah catatan baru
       try {
         const res = await axios.post(API_URL, formData);
         setNotes([...notes, res.data]);
@@ -53,7 +57,6 @@ function App() {
     }
   };
 
-  // Fungsi untuk menghapus catatan
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${API_URL}/${id}`);
@@ -63,13 +66,11 @@ function App() {
     }
   };
 
-  // Fungsi untuk memulai mode edit
   const handleEdit = (note) => {
     setFormData({ title: note.title, content: note.content });
     setEditId(note.id);
   };
 
-  // Fungsi untuk membatalkan edit
   const handleCancelEdit = () => {
     setEditId(null);
     setFormData({ title: "", content: "" });
@@ -105,7 +106,7 @@ function App() {
       </form>
 
       <ul>
-        {notes.map((note) => (
+        {Array.isArray(notes) && notes.map((note) => (
           <li key={note.id}>
             <div className="note-header">
               <h2>{note.title}</h2>
