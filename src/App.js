@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-const API_URL = "https://tu6-be060-700231807331.us-central1.run.app/notes";
+const API_URL = "https://tu6-be060-700231807331.us-central1.run.app";
 
 function App() {
   const [notes, setNotes] = useState([]);
